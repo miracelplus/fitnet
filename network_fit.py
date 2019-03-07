@@ -4,7 +4,6 @@ import torch.nn as nn
 import torch.nn.functional as F 
 import torch.utils.data as Data
 import matplotlib 
-matplotlib.use('Agg')
 from tensorboardX import SummaryWriter
 writer = SummaryWriter('log')
 import matplotlib.pyplot as plt
@@ -33,9 +32,14 @@ def normalize(input,target,range_lb,range_ub,range_rate_lb,range_rate_ub,v_lb,v_
 
 def apply_test(test_data,test_target):
     whole_loss = 0
-    mydata = test_data[20]
-    mytarget = test_target[20]
+    randint = np.random.randint(0,500)
+    mydata = test_data[randint]
+    mytarget = test_target[randint]
+    myprediction = net(mydata)
+    #print("prediction:",myprediction,"target:",mytarget)
     prediction = net(test_data)
+    #print(test_target)
+    #print(prediction)
     loss = loss_func(prediction,test_target)
     return loss
 
@@ -85,26 +89,32 @@ class Net(nn.Module):
     def __init__(self,):
         super(Net,self).__init__()
         self.fc1 = nn.Linear(N_STATES,50)
-        self.fc1.weight.data.normal_(0,0.1)
+        #self.fc1.weight.data.normal_(0,0.1)
         self.fc2 = nn.Linear(50,50)
-        self.fc2.weight.data.normal_(0,0.1)
+        #self.fc2.weight.data.normal_(0,0.1)
         self.out = nn.Linear(50,N_VALUE)
-        self.out.weight.data.normal_(0,0.1)
+        #self.out.weight.data.normal_(0,0.1)
 
     def forward(self,x):
+        #print(x)
         x = self.fc1(x)
+        #print(x)
         x = F.relu(x)
+        #print(x)
         x = self.fc2(x)
         x = F.relu(x)
+        #print(x)
         x = self.out(x)
+        #print(x)
         return x
 
-print("-----     搭建网络     -----")
+print("-----     Net Constructing     -----")
 print(" ")
-net = Net()
+net = Net().cuda()
+
 print(net)
 print(" ")
-print("-----     数据加载以及预处理     -----")
+print("-----     Data Load and Preprocess     -----")
 print(" ")
 target = sio.loadmat('Q_table_little.mat')['Q_table_little']
 input = sio.loadmat('dangerous_state_table.mat')['dangerous_state_table']
@@ -112,64 +122,73 @@ input,target,range_lb,range_ub,range_rate_lb,range_rate_ub,v_lb,v_ub,target_lb,t
 
 #input,target = normalize(input,target,range_lb,range_ub,range_rate_lb,range_rate_ub,v_lb,v_ub,target_lb,target_ub)
 
-print("输入数组的大小为",input.shape[0])
-np.save('input.npy',input)
-np.save('target.npy',target)
+print("Input Array Size:",input.shape[0])
+#np.save('input.npy',input)
+#np.save('target.npy',target)
+input = np.load('input.npy')
+target = np.load('target.npy')
+input,target = normalize(input,target,range_lb,range_ub,range_rate_lb,range_rate_ub,v_lb,v_ub,target_lb,target_ub)
 test_index = random.sample(range(input.shape[0]), 500) 
 test_input = input[test_index]
 test_target = target[test_index]
 train_index = list(set(range(input.shape[0]))-set(test_index))
 train_input = input[train_index]
 train_target = target[train_index]
-print("训练集大小为",train_input.shape[0])
-print("测试集大小为",test_input.shape[0])
+print("Train data size:",train_input.shape[0])
+print("Test data size",test_input.shape[0])
 print(" ")
-print("-----     训练设定以及加载网络     -----")
+print("-----     Setting and netload     -----")
 print(" ")
-optimizer = torch.optim.Adam(net.parameters(),lr = 1e-3)
+optimizer = torch.optim.Adam(net.parameters(),lr = 0.1)
 loss_func = torch.nn.L1Loss()
 BATCH_SIZE = 16
-print("使用Adam优化器，loss_func采用L1Loss()")
-torch_dataset = Data.TensorDataset(torch.from_numpy(train_input),torch.from_numpy(train_target))
+print("Using Adam Optim and L1Loss")
+torch_dataset = Data.TensorDataset(torch.from_numpy(train_input).cuda(),torch.from_numpy(train_target).cuda())
+torch_dataset = torch_dataset
 loader = Data.DataLoader(
     dataset = torch_dataset,
     batch_size=BATCH_SIZE,
     shuffle=True
 )
-print("装载数据完成，BATCH_SIZE为",BATCH_SIZE,",使用2个线程装载数据")
 
 last_epoch = -1
 if os.path.isfile('./models/model.pth'):
     print("=> loading checkpoint '{}'".format('./models/model.pth'))
     checkpoint = torch.load('./models/model.pth')
     #start_episode = checkpoint['epoch']
-    net.load_state_dict(checkpoint['net'])
+    #net.load_state_dict(checkpoint['net'])
     last_epoch = checkpoint['epoch']
     print("=> loaded checkpoint '{}' (epoch {})".format('./models/model.pth', checkpoint['epoch']))
 
 print(" ")
-print("-----     开始训练     -----")
+print("-----     Begin Training    -----")
 print(" ")
   
 for epoch in range(last_epoch+1,10000000000000):
-    net_state = {'net':net.state_dict(), 'epoch':epoch}
-    torch.save(net_state,'./models/model.pth')
-    print("=> saving checkpoint at epoch",epoch)
+    
     for step,(data_step,target_step) in enumerate(loader):
         #print(step)
+        #print(data_step)
         prediction = net(data_step)
+        # print(prediction)
         loss = loss_func(prediction,target_step)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        if step%1e3 == 999:
+        if (epoch * len(loader) + step)%1e4 == 9999:
+            net_state = {'net':net.state_dict(), 'epoch':epoch}
+            torch.save(net_state,'./models/model.pth')
+            print("=> saving checkpoint at epoch",epoch)
+        if (epoch * len(loader) + step)%1e3 == 999:
+            print(net(data_step[0,:]))
+            print(prediction[0])
             print("epoch:",epoch,"batch:",step,"loss:",loss)
-        if step%10 == 0:
+        if (epoch * len(loader) + step)%10 == 0:
             niter = epoch * len(loader) + step
             writer.add_scalar("Train/Loss",loss,niter)
-        if step%500 == 0:
+        if (epoch * len(loader) + step)%500 == 0:
             niter = epoch * len(loader) + step
-            myloss = apply_test(torch.from_numpy(test_input),torch.from_numpy(test_target))
+            myloss = apply_test(torch.from_numpy(test_input).cuda(),torch.from_numpy(test_target).cuda())
             #print("episode:",step,"test_loss:",myloss)
             writer.add_scalar('Test/Accu', myloss, niter)
         
