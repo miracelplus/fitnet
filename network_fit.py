@@ -99,11 +99,11 @@ class Net(nn.Module):
         #print(x)
         x = self.fc1(x)
         #print(x)
-        x = F.relu(x)
+        x = torch.sigmoid(x)
         #print(x)
         x = self.fc2(x)
-        x = F.relu(x)
-        #print(x)
+        x = torch.sigmoid(x)
+        print(x)
         x = self.out(x)
         #print(x)
         return x
@@ -127,6 +127,8 @@ print("Input Array Size:",input.shape[0])
 #np.save('target.npy',target)
 input = np.load('input.npy')
 target = np.load('target.npy')
+for i in range(target.shape[0]):
+    target[i] = np.sin(input[i,0]+input[i,1]+input[i,2]+input[i,3])
 input,target = normalize(input,target,range_lb,range_ub,range_rate_lb,range_rate_ub,v_lb,v_ub,target_lb,target_ub)
 test_index = random.sample(range(input.shape[0]), 500) 
 test_input = input[test_index]
