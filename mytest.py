@@ -31,30 +31,42 @@ class Net(torch.nn.Module):
         self.hidden = torch.nn.Linear(n_feature, n_hidden)   # hidden layer
         self.hidden2 = torch.nn.Linear(n_hidden, n_hidden)
         self.hidden3 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden4 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden5 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden6 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden7 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden8 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden9 = torch.nn.Linear(n_hidden, n_hidden)
         self.predict = torch.nn.Linear(n_hidden, n_output)   # output layer
 
     def forward(self, x):
         x = F.relu(self.hidden(x))      # activation function for hidden layer
         x = F.relu(self.hidden2(x))
         x = F.relu(self.hidden3(x))
+        x = F.relu(self.hidden4(x))
+        x = F.relu(self.hidden5(x))
+        x = F.relu(self.hidden6(x))
+        x = F.relu(self.hidden7(x))
+        x = F.relu(self.hidden8(x))
+        x = F.relu(self.hidden9(x))
         x = self.predict(x)             # linear output
         #print(x)
         return x
 
-net = Net(n_feature=4, n_hidden=10, n_output=1).cuda()     # define the network
+net = Net(n_feature=4, n_hidden=500, n_output=1).cuda()     # define the network
 print(net)  # net architecture
 x_lizi = np.linspace(-4,4,500)
 y_lizi = np.sin(3*x_lizi)
 
-lr = 0.2
+lr = 0.3
 optimizer = torch.optim.SGD(net.parameters(), lr=lr)
 loss_func = torch.nn.L1Loss()  # this is for regression mean squared loss
 
 plt.ion()   # something about plotting
 
-for t in range(int(2e8)):
-    if t % 30 == 0:
-        lr = lr*0.9
+for t in range(int(2e6)):
+    if t%200 == 0:
+        lr = lr*0.95
     optimizer = torch.optim.SGD(net.parameters(), lr=lr)
     print("epoch:",t)
     prediction = net(x)     # input x and predict based on x

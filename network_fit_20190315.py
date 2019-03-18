@@ -23,33 +23,53 @@ def normalize(input,target):
     target = (target-np.mean(target))/np.std(target)
     return input,target
 
-class Net(nn.Module):
-    
-    def __init__(self,):
-        super(Net,self).__init__()
-        self.fc1 = nn.Linear(N_STATES,50)
-        #self.fc1.weight.data.normal_(0,0.1)
-        self.fc2 = nn.Linear(50,50)
-        #self.fc2.weight.data.normal_(0,0.1)
-        self.out = nn.Linear(50,N_VALUE)
-        #self.out.weight.data.normal_(0,0.1)
+class Net(torch.nn.Module):
+    def __init__(self, n_feature, n_hidden, n_output):
+        super(Net, self).__init__()
+        self.hidden = torch.nn.Linear(n_feature, n_hidden)   # hidden layer
+        self.hidden2 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden3 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden4 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden5 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden6 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden7 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden8 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden9 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden12 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden13 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden14 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden15 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden16 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden17 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden18 = torch.nn.Linear(n_hidden, n_hidden)
+        self.hidden19 = torch.nn.Linear(n_hidden, n_hidden)
+        self.predict = torch.nn.Linear(n_hidden, n_output)   # output layer
 
-    def forward(self,x):
-        #print(x)
-        x = self.fc1(x)
-        #print(x)
-        x = torch.sigmoid(x)
-        #print(x)
-        x = self.fc2(x)
-        x = torch.sigmoid(x)
-        print(x)
-        x = self.out(x)
+    def forward(self, x):
+        x = F.relu(self.hidden(x))      # activation function for hidden layer
+        x = F.relu(self.hidden2(x))
+        x = F.relu(self.hidden3(x))
+        x = F.relu(self.hidden4(x))
+        x = F.relu(self.hidden5(x))
+        x = F.relu(self.hidden6(x))
+        x = F.relu(self.hidden7(x))
+        x = F.relu(self.hidden8(x))
+        x = F.relu(self.hidden9(x))
+        x = F.relu(self.hidden12(x))
+        x = F.relu(self.hidden13(x))
+        x = F.relu(self.hidden14(x))
+        x = F.relu(self.hidden15(x))
+        x = F.relu(self.hidden16(x))
+        x = F.relu(self.hidden17(x))
+        x = F.relu(self.hidden18(x))
+        x = F.relu(self.hidden19(x))
+        x = self.predict(x)             # linear output
         #print(x)
         return x
 
 print("-----     Net Constructing     -----")
 print(" ")
-net = Net().cuda()
+net = Net(n_feature=4, n_hidden=5000, n_output=1).cuda()
 
 print(net)
 print(" ")
@@ -80,8 +100,11 @@ optimizer = torch.optim.Adam(net.parameters(),lr = lr)
 loss_func = torch.nn.L1Loss()
 
 for epoch in range(int(1e8)):
-    prediction = net(train_input)
-    loss = loss_func(prediction,train_target)
+    train_index = random.sample(range(train_input.shape[0]), 16) 
+    input_tmp = train_input[train_index]
+    target_tmp = train_target[train_index]
+    prediction = net(input_tmp)
+    loss = loss_func(prediction,target_tmp)
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
