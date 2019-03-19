@@ -71,7 +71,7 @@ class Net(torch.nn.Module):
         x = F.relu(self.hidden9(x))
         '''
         x = self.predict(x)             # linear output
-        print(x)
+        #print(x)
         return x
 
 net = Net(n_feature=4, n_hidden=50, n_output=1).cuda()     # define the network
@@ -87,7 +87,7 @@ plt.ion()   # something about plotting
 
 x = torch.from_numpy(np.load('input.npy')).cuda()
 y = torch.from_numpy(np.load('target.npy')).cuda()
-index_num = 400
+index_num = 13000
 data_index = random.sample(range(x.shape[0]), index_num)
 #data_index = [100,111,123,124,126,178,270,220,440,450]
 x = x[data_index]
@@ -120,13 +120,18 @@ for t in range(int(whole_test_num)):
     if t % 10 == 0:
         # plot and show learning process
         plt.cla()
-        plt.ylim(-1.5,1.5)
-        plt.plot(x_lizi,y_lizi)
+        #plt.ylim(-1.5,1.5)
+        #plt.plot(x_lizi,y_lizi)
         #plt.scatter(x_cankao.data.cpu().numpy(), y.data.cpu().numpy())
-        plt.scatter(x_cankao.data.cpu().numpy(), prediction.data.cpu().numpy(),c='r',marker='.')
-        plt.text(0, 1.3, 'Loss=%.4f' % loss.data.cpu().numpy(), fontdict={'size': 14, 'color':  'red'})
+        y_data = np.hstack((y.data.cpu().numpy(),prediction.data.cpu().numpy()))
+        #plt.plot(y.data.cpu().numpy())
+        plt.scatter(np.array(range(index_num)).reshape(index_num,1),y.data.cpu().numpy(),marker='.')
+        plt.scatter(np.array(range(index_num)).reshape(index_num,1),prediction.data.cpu().numpy(),c='r',marker='.')
+        #plt.text(0, 1.3, 'Loss=%.4f' % loss.data.cpu().numpy(), fontdict={'size': 14, 'color':  'red'})
+        plt.title('Loss=%.4f' % loss.data.cpu().numpy())
         plt.pause(0.1)
         writer.add_scalar("Train/Loss",loss,t)
+        '''
         params = list(net.named_parameters())
         print('-------------------------------------------------')
         (name, param) = params[17]
@@ -136,5 +141,6 @@ for t in range(int(whole_test_num)):
         (name, param) = params[18]
         print(name)
         print(param.grad)
+        '''
 plt.ioff()
 plt.show()
