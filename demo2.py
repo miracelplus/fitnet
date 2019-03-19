@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 
 input = np.load('input.npy')
 target_data = np.load('target.npy')
+np.savetxt("input.csv", input, delimiter=',')
+np.savetxt("target.csv", target_data, delimiter=',')
 whole_data = np.hstack((input,target_data))
 whole_data = whole_data[np.argsort(whole_data[:,4])]
 whole_data = whole_data[-13000:,]
