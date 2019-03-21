@@ -74,7 +74,7 @@ class Net(torch.nn.Module):
         #print(x)
         return x
 
-net = Net(n_feature=4, n_hidden=50, n_output=1).cuda()     # define the network
+net = Net(n_feature=4, n_hidden=500, n_output=1).cuda()     # define the network
 print(net)  # net architecture
 x_lizi = np.linspace(-4,4,500)
 y_lizi = np.sin(3*x_lizi)
@@ -101,23 +101,29 @@ x,y = normalize_torch(x,y)
 #x = torch.from_numpy(x).cuda()
 #y = torch.from_numpy(y).cuda()
 x_cankao = x.sum(1)
-whole_test_num = int(2e9)
+whole_test_num = int(2e7)
 for t in range(int(whole_test_num)):
     #if t%30 == 0:
     lr = 0.1*(whole_test_num-t)/whole_test_num
     optimizer = torch.optim.SGD(net.parameters(), lr=lr)
-    print("epoch:",t)
+    #print("epoch:",t)
     prediction = net(x)     # input x and predict based on x
     loss = loss_func(prediction, y)     # must be (1. nn output, 2. target)
 
     optimizer.zero_grad()   # clear gradients for next train
     loss.backward()         # backpropagation, compute gradients
     optimizer.step()        # apply gradients
-    print("loss:",loss.data.cpu().numpy(),"| lr:",lr)
+    
     #print('x:',x,'y:',y,'prediction:',prediction)
     #if t % 10 == 0:
     #    writer.add_scalar('Test/Accu', loss, t)
+    if t%1e4 == 0:
+            net_state = {'net':net.state_dict(), 'epoch':t}
+            torch.save(net_state,'./models/model.pth')
+            print("=> saving checkpoint at epoch",t)
     if t % 10 == 0:
+        print("epoch:",t,"loss:",loss.data.cpu().numpy(),"| lr:",lr)
+        '''
         # plot and show learning process
         plt.cla()
         #plt.ylim(-1.5,1.5)
@@ -130,6 +136,7 @@ for t in range(int(whole_test_num)):
         #plt.text(0, 1.3, 'Loss=%.4f' % loss.data.cpu().numpy(), fontdict={'size': 14, 'color':  'red'})
         plt.title('Loss=%.4f' % loss.data.cpu().numpy())
         plt.pause(0.1)
+        '''
         writer.add_scalar("Train/Loss",loss,t)
         '''
         params = list(net.named_parameters())
