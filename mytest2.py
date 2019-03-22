@@ -74,7 +74,7 @@ class Net(torch.nn.Module):
         #print(x)
         return x
 
-net = Net(n_feature=4, n_hidden=500, n_output=1).cuda()     # define the network
+net = Net(n_feature=4, n_hidden=50, n_output=1).cuda()     # define the network
 print(net)  # net architecture
 x_lizi = np.linspace(-4,4,500)
 y_lizi = np.sin(3*x_lizi)
