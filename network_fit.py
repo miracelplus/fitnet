@@ -123,10 +123,11 @@ input,target,range_lb,range_ub,range_rate_lb,range_rate_ub,v_lb,v_ub,target_lb,t
 #input,target = normalize(input,target,range_lb,range_ub,range_rate_lb,range_rate_ub,v_lb,v_ub,target_lb,target_ub)
 
 print("Input Array Size:",input.shape[0])
-#np.save('input.npy',input)
-#np.save('target.npy',target)
-input = np.load('input.npy')
-target = np.load('target.npy')
+np.save('input.npy',input)
+np.save('target.npy',target)
+print("save over")
+#input = np.load('input.npy')
+#target = np.load('target.npy')
 for i in range(target.shape[0]):
     target[i] = np.sin(input[i,0]+input[i,1]+input[i,2]+input[i,3])
 input,target = normalize(input,target,range_lb,range_ub,range_rate_lb,range_rate_ub,v_lb,v_ub,target_lb,target_ub)

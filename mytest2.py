@@ -87,7 +87,7 @@ plt.ion()   # something about plotting
 
 x = torch.from_numpy(np.load('input.npy')).cuda()
 y = torch.from_numpy(np.load('target.npy')).cuda()
-index_num = 13000
+index_num = 230000
 data_index = random.sample(range(x.shape[0]), index_num)
 #data_index = [100,111,123,124,126,178,270,220,440,450]
 x = x[data_index]
